@@ -96,3 +96,5 @@ executable space
 
     -- Base language which the package is written in.
     default-language: GHC2021
+
+    ghc-options: -threaded -rtsopts

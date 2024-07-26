@@ -2,30 +2,40 @@ module Space.Types where
 
 import Data.UUID (UUID)
 import Linear (V3(..), V2)
+import Control.Concurrent.STM (TVar)
 
 class GameId a where
   gameId :: a -> UUID
 
-data GameObject = forall a. (GameId a) => GameObject a
+data PhysicsEntity 
+  = PlanetEntity Planet
+  | SpaceshipEntity SpaceShip
+  deriving (Eq, Ord, Show)
 
-instance GameId GameObject where
-  gameId (GameObject g) = gameId g
+instance GameId PhysicsEntity where
+  gameId (PlanetEntity p) = gameId p
+  gameId (SpaceshipEntity s) = gameId s
 
-instance Eq GameObject where
-  (==) (GameObject a) (GameObject b) = gameId a == gameId b
-
-instance Ord GameObject where
-  compare (GameObject a) (GameObject b) = compare (gameId a) (gameId b)
-
-data PVA = PVA 
-  { pvaPosition :: !(V3 Double)
-  , pvaVelocity :: !(V3 Double)
-  , pvaAcceleration :: !(V3 Double)
+data PhysicsObject = PhysicsObject
+  { physObjPhysics :: TVar Physics
+  , physObjEntity :: PhysicsEntity
   }
 
+instance Show PhysicsObject where
+  show po = show $ physObjEntity po
+
+
+instance GameId PhysicsObject where
+  gameId po = gameId (physObjEntity po)
+
+data Physics = Physics 
+  { physicsPosition :: !(V3 Double)
+  , physicsVelocity :: !(V3 Double)
+  , physicsMass :: !Double
+  } deriving (Eq, Ord, Show)
+
 data Planet = Planet
-  { planetMass :: Double
-  , planetRadius :: Double
+  { planetRadius :: Double
   , planetId :: UUID
   } deriving (Eq, Ord, Show)
 
@@ -33,8 +43,7 @@ instance GameId Planet where
   gameId = planetId
 
 data SpaceShip = SpaceShip
-  { spaceShipMass :: Double
-  , spaceShipLength :: Double
+  { spaceShipLength :: Double
   , spaceShipID :: UUID
   } deriving (Eq, Ord, Show)
 
